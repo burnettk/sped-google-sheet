@@ -1,12 +1,12 @@
 // Shared function for adding data validation
-function addDataValidation(sheet, row, student, accommodations) {
+function _addDataValidation(sheet, row, student, accommodations) {
     const accommodationColumn = 2;
     const rule = SpreadsheetApp.newDataValidation().requireValueInList(accommodations).build();
     const accommodationCell = sheet.getRange(row, accommodationColumn);
     accommodationCell.clearContent().setDataValidation(rule);
 }
 
-// onEdit function
+// onEdit function gets run every time a cell in the spreadsheet is edited even if no trigger is specified
 function onEdit(e) {
     const sheetName = 'Log';
     const dataSheetName = 'Accommodations';
@@ -36,7 +36,7 @@ function onEdit(e) {
                 return acc;
             }, []);
 
-        addDataValidation(sheet, editedCell.getRow(), student, accommodations);
+        _addDataValidation(sheet, editedCell.getRow(), student, accommodations);
 
         const dateCell = sheet.getRange(editedCell.getRow(), dateColumn);
         if (!dateCell.getValue()) {
@@ -54,7 +54,6 @@ function onOpen() {
         .addToUi();
 }
 
-// fillShortestString function
 function fillShortestString() {
     const sheetName = 'Accommodations'; // Ensure this is the correct sheet
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
@@ -86,7 +85,6 @@ function fillShortestString() {
     }
 }
 
-// fillAccommodations function
 function fillAccommodations() {
     const sheetName = 'Log';  // Capitalized Log sheet
     const dataSheetName = 'Accommodations';
@@ -137,7 +135,7 @@ function fillAccommodations() {
     
     accommodations.forEach((accommodation, index) => {
         const currentRow = targetRow + index;
-        addDataValidation(sheet, currentRow, student, accommodations); // Add data validation
+        _addDataValidation(sheet, currentRow, student, accommodations); // Add data validation
         sheet.getRange(currentRow, studentColumn).setValue(student);
         sheet.getRange(currentRow, accommodationColumn).setValue(accommodation);
         const dateCell = sheet.getRange(currentRow, dateColumn);

@@ -1,8 +1,16 @@
+// Shared function for adding data validation
+function addDataValidation(sheet, row, student, accommodations) {
+    const accommodationColumn = 2;
+    const rule = SpreadsheetApp.newDataValidation().requireValueInList(accommodations).build();
+    const accommodationCell = sheet.getRange(row, accommodationColumn);
+    accommodationCell.clearContent().setDataValidation(rule);
+}
+
+// onEdit function
 function onEdit(e) {
     const sheetName = 'Log';
     const dataSheetName = 'Accommodations';
     const studentColumn = 1;
-    const accommodationColumn = 2;
     const dateColumn = 5;
     const studentRange = 'A:A';
     const accommodationRange = 'B:B';
@@ -20,14 +28,15 @@ function onEdit(e) {
         const accommodations = dataSheet.getRange(studentRange).getValues()
             .reduce((acc, row, index) => {
                 if (row[0] === student) {
-                    acc.push(dataSheet.getRange(accommodationRange).getCell(index + 1, 1).getValue());
+                    const accommodation = dataSheet.getRange(accommodationRange).getCell(index + 1, 1).getValue();
+                    if (accommodation) {
+                        acc.push(accommodation);
+                    }
                 }
                 return acc;
             }, []);
 
-        const accommodationCell = sheet.getRange(editedCell.getRow(), accommodationColumn);
-        const rule = SpreadsheetApp.newDataValidation().requireValueInList(accommodations).build();
-        accommodationCell.clearContent().setDataValidation(rule);
+        addDataValidation(sheet, editedCell.getRow(), student, accommodations);
 
         const dateCell = sheet.getRange(editedCell.getRow(), dateColumn);
         if (!dateCell.getValue()) {
@@ -36,6 +45,7 @@ function onEdit(e) {
     }
 }
 
+// onOpen function to create the custom menu
 function onOpen() {
     const ui = SpreadsheetApp.getUi();
     ui.createMenu('SPED Actions')
@@ -44,6 +54,7 @@ function onOpen() {
         .addToUi();
 }
 
+// fillShortestString function
 function fillShortestString() {
     const sheetName = 'Accommodations'; // Ensure this is the correct sheet
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
@@ -75,6 +86,7 @@ function fillShortestString() {
     }
 }
 
+// fillAccommodations function
 function fillAccommodations() {
     const sheetName = 'Log';  // Capitalized Log sheet
     const dataSheetName = 'Accommodations';
@@ -110,7 +122,10 @@ function fillAccommodations() {
     const accommodations = dataSheet.getRange(studentRange).getValues()
         .reduce((acc, row, index) => {
             if (row[0] === student) {
-                acc.push(dataSheet.getRange(accommodationRange).getCell(index + 1, 1).getValue());
+                const accommodation = dataSheet.getRange(accommodationRange).getCell(index + 1, 1).getValue();
+                if (accommodation) {
+                    acc.push(accommodation);
+                }
             }
             return acc;
         }, []);
@@ -122,6 +137,7 @@ function fillAccommodations() {
     
     accommodations.forEach((accommodation, index) => {
         const currentRow = targetRow + index;
+        addDataValidation(sheet, currentRow, student, accommodations); // Add data validation
         sheet.getRange(currentRow, studentColumn).setValue(student);
         sheet.getRange(currentRow, accommodationColumn).setValue(accommodation);
         const dateCell = sheet.getRange(currentRow, dateColumn);
